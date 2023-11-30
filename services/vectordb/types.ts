@@ -1,11 +1,14 @@
 import { Document } from "langchain/document";
 
-export interface IVectorDb<TStore> {
-    documents: Document<Record<string, any>>[]
-
+export interface IVectorDb<
+TStore,
+TStoredMeta extends Record<string, any>,
+TImportMeta extends Record<string, any> = TStoredMeta
+> {
+    documents: Document<TStoredMeta>[]
     GetStore(): Promise<TStore>
 
-    ImportDocuments(docs: Document<Record<string, any>>[]): Promise<void>
+    ImportDocuments(docs: Document<TImportMeta>[]): Promise<void>
 
     MakeRetriever(): any
 }

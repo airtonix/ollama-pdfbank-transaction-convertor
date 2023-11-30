@@ -1,35 +1,30 @@
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { LanceStore } from '@/services/vectordb/landcedb';
-import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
-import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
+import { Document } from "langchain/document";
 import { environment } from '@/services/config';
+import { DirectoryLoader } from '@/utils/customPDFLoader';
+
+
 
 (async () => {
+  console.log('👀 loading pdfs...')
+  const loader = new DirectoryLoader(environment.APP_DOCUMENT_PATH)
 
-
-  /*load raw docs from the all files in the directory */
-  const directoryLoader = new DirectoryLoader(environment.APP_DOCUMENT_PATH, {
-    '.pdf': (path) => new PDFLoader(path),
-  });
-
-  // const loader = new PDFLoader(filePath);
-  const raw = await directoryLoader.load();
-
-  /* Split text into chunks */
-  const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-
-  const documents = await textSplitter.splitDocuments(raw);
-  const santised = documents.map(doc => ({
+  const files = (await loader.load())
+  console.log('✔️ loaded %s pdfs', files.length)
+  
+  console.log('preparing documents...')
+  const prepared = files.map(doc => ({
     pageContent: doc.pageContent,
-    source: doc.metadata.source,
-    metadata: {}
+    metadata: {
+      title: doc.metadata.source,
+      version: '1.0.0',
+      ...doc.metadata,
+    }
   }))
+  console.log('prepared %s documents...', prepared.length)
 
-  console.log('creating vector store...');
-  await LanceStore.ImportDocuments(santised);
+  console.log('👀 importing documents...')
+  await LanceStore.ImportDocuments(prepared);
 
-  console.log('import complete');
+  console.log('✔️ import complete');
 })();
