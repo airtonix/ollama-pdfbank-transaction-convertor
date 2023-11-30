@@ -17,6 +17,8 @@ import { DirectoryLoader } from '@/utils/customPDFLoader';
     pageContent: doc.pageContent,
     metadata: {
       title: doc.metadata.source,
+      //TODO: somehow get the version from the pdf.
+      // and move this to the pdf loader
       version: '1.0.0',
       ...doc.metadata,
     }
